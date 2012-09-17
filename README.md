@@ -13,10 +13,10 @@ FAQS
 
 AUTHORS
 -------
++ Nguyen Duc Minh Khoi
++ Nguyen Tan Thong \<xcodevn at gmail dot com\>
 
-NGUYEN DUC MINH KHOI
-NGUYEN TAN THONG <XCODEVN AT GMAIL DOT COM>
 
 LICENSE
 -------
-GPL LICENSE
+GPL license
