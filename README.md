@@ -4,19 +4,19 @@ eSMS
 Encrypt your SMS
 
 
-INTRODUCTION
+Introduction
 ------------
 
-FAQS
+FAQs
 ----
 
 
-AUTHORS
+Authors
 -------
 + Nguyen Duc Minh Khoi
 + Nguyen Tan Thong \<xcodevn at gmail dot com\>
 
 
-LICENSE
+License
 -------
 GPL license
