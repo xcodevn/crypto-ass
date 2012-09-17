@@ -2,3 +2,21 @@ eSMS
 ====
 
 Encrypt your SMS
+
+
+INTRODUCTION
+------------
+
+FAQS
+----
+
+
+AUTHORS
+-------
+
+NGUYEN DUC MINH KHOI
+NGUYEN TAN THONG <XCODEVN AT GMAIL DOT COM>
+
+LICENSE
+-------
+GPL LICENSE
