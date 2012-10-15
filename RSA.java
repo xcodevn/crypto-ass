@@ -1,9 +1,18 @@
 import java.security.SecureRandom;
 import java.math.BigInteger;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
+
+
+
 public class RSA {
 	
-	static boolean DEBUG = true;
+	static boolean DEBUG = false;
 	
 	BigInteger[] extended_gcd(BigInteger a, BigInteger b) {
 		BigInteger x = BigInteger.ZERO;
@@ -17,9 +26,9 @@ public class RSA {
 			BigInteger r = rl[1];
 			a = b; b = r;
 			BigInteger tmp = lastx.subtract(quotient.multiply(x));
-			x = tmp; lastx = x;
+			lastx = x; x = tmp; 
 			tmp = lasty.subtract(quotient.multiply(y));
-			y = tmp; lasty = x;
+			lasty = y; y = tmp; 
 		}
 		
 		BigInteger[] rl = {lastx, lasty};
@@ -33,6 +42,8 @@ public class RSA {
 		while   ((q = createBigPrimeNumber(bitlen)).compareTo(p) == 0) ;
 		
 		BigInteger[] rl = {p, q};
+		// System.out.println("p  q" +p.toString(2).length() + "   " + q.toString(2).length());
+
 		return rl;
 		
 	}
@@ -58,6 +69,11 @@ public class RSA {
 	BigInteger encrypt(BigInteger m, BigInteger e, BigInteger n) {
 		return powmod(m, e, n);
 	}
+
+	BigInteger decrypt(BigInteger c, BigInteger d, BigInteger n) {
+		return powmod(c, d, n);
+	}
+	
 	
 	BigInteger findd(BigInteger e, BigInteger p, BigInteger q) {
 		BigInteger phi = p.subtract(BigInteger.ONE).multiply(q.subtract(BigInteger.ONE));
@@ -158,6 +174,123 @@ public class RSA {
 		return true;
 	}
 	
+	/*
+	 * This method uses PKCS#1v1.5
+	 * 
+	 * Reference at http://www.di-mgt.com.au/rsa_alg.html#pkcs1schemes
+	 */
+	
+	byte[] encryptData(byte[] M, int len, BigInteger e, BigInteger n) {
+		int size = (n.bitLength()-1)/8 + 1;
+		if (len > size - 11) return null;
+		
+		// mesg = 00 || 02 || PS || 00 || M
+		byte[] mesg = new byte[size];
+		mesg[0] = 0; mesg[1] = 0x02;
+		int lenps = size - len - 3;
+		SecureRandom rnd = new SecureRandom();
+		for (int i = 1; i <= lenps; i++)
+			mesg[1+i] = (new Integer(1+rnd.nextInt(255))).byteValue();
+		
+		mesg[2+lenps] = 0x00;
+		
+		for (int i = 0; i < len; i++)
+			mesg[i+ 3+lenps] = M[i];
+		
+		byte[] cipher = new byte[size];
+		byte[] c = encrypt(new BigInteger(1, mesg), e, n).toByteArray();
+		if (c[0] == 0) {
+			byte[] tmp = new byte[c.length - 1];
+			System.arraycopy(c, 1, tmp, 0, tmp.length);
+			c = tmp;
+		}
+
+/*
+		System.out.println("size " + n.bitLength() + " c length " + c.length +": " +n.toByteArray()[0]);
+		System.out.println("n " + n.toString(2).length());
+*/
+		for (int i= 0; i < c.length; i++)
+			cipher[size - c.length + i] = c[i];
+		
+		return cipher;
+	}
+	
+	byte[] decryptData(byte[] C, int len, BigInteger d, BigInteger n) {
+		int size = (n.bitLength()-1)/8 + 1;
+		
+		BigInteger cipher = new BigInteger(1, C);
+		BigInteger M = decrypt(cipher, d, n);
+		byte[] mesg = M.toByteArray();
+		if (mesg[0] == 0) {
+			byte[] tmp = new byte[mesg.length - 1];
+			System.arraycopy(mesg, 1, tmp, 0, tmp.length);
+			mesg = tmp;
+		}
+		
+		int c = 1;
+		while (mesg[c] != 0) c++;
+		
+		byte[] rl  = new byte[size - 3 - c + 1];
+		for (int i = 0; i < rl.length; i++)
+			rl[i] = mesg[i+c+1];
+		
+		return rl;
+	}
+
+	
+	void decryptFile(String fileName, BigInteger d, BigInteger n) throws IOException {
+        FileInputStream in = null;
+        FileOutputStream out = null;
+
+        try {
+            in = new FileInputStream(fileName);
+            out = new FileOutputStream("out.decrypt");
+			int size = (n.bitLength()-1)/8 + 1;
+            
+            byte[] buff = new byte[size];
+            int len;
+            while ( (len = in.read(buff)) != -1 ) {
+            	byte[] cipher = decryptData(buff, len, d, n);
+            	out.write(cipher);
+            }
+        } finally {
+            if (in != null) {
+                in.close();
+            }
+            if (out != null) {
+                out.close();
+            }
+        }
+		
+	}
+
+	void encryptFile(String fileName, BigInteger e, BigInteger n) throws IOException {
+        FileInputStream in = null;
+        FileOutputStream out = null;
+
+        try {
+            in = new FileInputStream(fileName);
+            out = new FileOutputStream("out.encrypt");
+			int size = (n.bitLength()-1)/8 + 1;
+            
+            byte[] buff = new byte[size - 11];
+            int len;
+            while ( (len = in.read(buff)) != -1 ) {
+            	byte[] cipher = encryptData(buff, len, e, n);
+            	out.write(cipher);
+            }
+        } finally {
+            if (in != null) {
+                in.close();
+            }
+            if (out != null) {
+                out.close();
+            }
+        }
+		
+	}
+	
+	
 	BigInteger createBigPrimeNumber(int bitlen){
 		BigInteger num = createBigNumber(bitlen);
 				
@@ -205,12 +338,37 @@ public class RSA {
 	int bitSize;
 	String fileName;
 	
-	void run(String[] args) {
+	void writeToDisk(BigInteger e, BigInteger d, BigInteger p, BigInteger q) {
+		PrintStream out = null;
+        try {
+			out = new PrintStream(new FileOutputStream("e.numb"));
+			out.print(e.toString());
+			out.close();
+			
+			out = new PrintStream(new FileOutputStream("d.numb"));
+			out.print(d.toString());
+			out.close();
+			
+			out = new PrintStream(new FileOutputStream("p.numb"));
+			out.print(p.toString());
+			out.close();
+			
+			out = new PrintStream(new FileOutputStream("q.numb"));
+			out.print(q.toString());
+			out.close();
+        } catch (FileNotFoundException ex) {
+			ex.printStackTrace();
+		}
+	}
+	
+	void run(String[] args) throws Exception{
 
 		/* 
 		 * This below code checks randomness of our createBigNumber method
 		 */
 		if (DEBUG) {
+			
+			System.out.println("gcd " + gcd(BigInteger.valueOf(12), BigInteger.valueOf(16)).toString());
 
 			int[] count = new int[100];
 			int i;
@@ -231,27 +389,33 @@ public class RSA {
 
 		if (args.length != 2) showHelp();
 
-		try {
+		//try {
 			/// TODO: bitSize = Integer.parser(args[0]);  DONE
 			bitSize = Integer.parseInt(args[0]);
 			fileName = args[1];
 			
 			BigInteger[] rl = createpq(bitSize);
+			System.out.println("Create p, q primes		[DONE]");
+
 			BigInteger p = rl[0];
 			BigInteger q = rl[1];
 			BigInteger e = finde(p, q);
+			System.out.println("Find e number			[DONE]");
 			BigInteger d = findd(e, p, q);
+			System.out.println("Find d number			[DONE]");
 			BigInteger n = p.multiply(q);
-			
-			
-		} catch (Exception ex) {
-			showHelp();
-		}
-			
+			//int size = n.bitLength()/8;
+			//int datasize = size - 11;
+			writeToDisk(e, d, p, q);
+			System.out.println("Write to disk			[DONE]");
+			encryptFile(fileName, e, n);
+			System.out.println("Encrypt	file			[DONE]");
+			decryptFile("out.encrypt", d, n);
+			System.out.println("Decrypt file			[DONE]");
 	}
 
-    public static void main(String[] args) {
-        System.out.println("Welcome to Crypto Assignment\nAuthor: Thong Nguyen & Khoi Nguyen\n");
+    public static void main(String[] args) throws Exception{
+        System.out.println("Welcome to Crypto Assignment\nAuthors: Thong Nguyen & Khoi Nguyen\n");
         
         new RSA().run(args);
     }
