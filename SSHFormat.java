@@ -128,7 +128,8 @@ public class SSHFormat {
 	public void run() throws IOException {
 		PerformGenerateKeyPublic();
 		PerformGenerateKeyPem();
-
+		System.out.println("Create key.pub			[DONE]");
+		System.out.println("Create key.pem			[DONE]");
 		writeOutputFile();
 	}
 
@@ -331,7 +332,6 @@ public class SSHFormat {
     } 
 
     public byte[] encodeLen(int len) {
-        System.out.println("Len:" + len);
         if (len <= 127) {
             byte[] rl = new byte[]{0x02, 0x00};
             rl[1] = (byte) len;
@@ -362,6 +362,6 @@ public class SSHFormat {
 	public static void main(String[] args) throws IOException {
 		SSHFormat sshFormat = new SSHFormat();
 		sshFormat.run();
-		sshFormat.test();
+		// sshFormat.test();
 	}
 }

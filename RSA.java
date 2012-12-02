@@ -394,24 +394,29 @@ public class RSA {
 			bitSize = Integer.parseInt(args[0]);
 			fileName = args[1];
 			
+			System.out.print("Create p, q primes");
 			BigInteger[] rl = createpq(bitSize);
-			System.out.println("Create p, q primes		[DONE]");
+			System.out.println("		[DONE]");
 
 			BigInteger p = rl[0];
 			BigInteger q = rl[1];
+			System.out.print("Find e number");
 			BigInteger e = finde(p, q);
-			System.out.println("Find e number			[DONE]");
+			System.out.println("			[DONE]");
+			System.out.print("Find d number");
 			BigInteger d = findd(e, p, q);
-			System.out.println("Find d number			[DONE]");
+			System.out.println("			[DONE]");
 			BigInteger n = p.multiply(q);
 			//int size = n.bitLength()/8;
 			//int datasize = size - 11;
 			writeToDisk(e, d, p, q);
 			System.out.println("Write to disk			[DONE]");
+			System.out.print("Encrypt	file");
 			encryptFile(fileName, e, n);
-			System.out.println("Encrypt	file			[DONE]");
+			System.out.println("			[DONE]");
+			System.out.print("Decrypt file");
 			decryptFile("out.encrypt", d, n);
-			System.out.println("Decrypt file			[DONE]");
+			System.out.println("			[DONE]");
 	}
 
     public static void main(String[] args) throws Exception{
