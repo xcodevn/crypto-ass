@@ -5,9 +5,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
-import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.bind.DatatypeConverter;
 
@@ -79,35 +79,32 @@ public class SSHFormat {
 
 	public void test() {
 		System.out.println(keyPub.toString());
+		System.out.println("\n\n");
 		System.out.println(keyPem.toString());
+		
 	}
 
 	private void PerformGenerateKeyPem() throws IOException {
 		// TODO Auto-generated method stub
 		StringBuilder content = new StringBuilder();
-		content.append("-----BEGIN PUBLIC KEY-----\n");
+		content.append("-----BEGIN PRIVACY-ENHANCED MESSAGE-----\n\n");
 
 		/**
 		 * Perform format here
 		 */
-		String headerTag = new String("Comment".getBytes("US-ASCII"));
-		String headerValue = new String(
-				"This is our group's public key for RSA Assignment.\n"
-						.getBytes("UTF-8"));
-		content.append(headerTag + ": " + headerValue);
 
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-		/* Write format identifier*/
+		/* Write format identifier */
 		byte[] sshrsa = new byte[] { 0, 0, 0, 7, 's', 's', 'h', '-', 'r', 's',
 				'a' };
 		out.write(sshrsa);
-		
+
 		/* Encode the e */
-		byte[] data = e.toByteArray();
+		byte[] data = d.toByteArray();
 		encodeUInt32(data.length, out);
 		out.write(data);
-		
+
 		/* Encode the n */
 		data = (p.multiply(q)).toByteArray();
 		encodeUInt32(data.length, out);
@@ -123,9 +120,9 @@ public class SSHFormat {
 			System.out.println(body);
 		}
 
-		content.append(body);
+		content.append(splitStringFixedSize(body, 68));
 
-		content.append("\n-----END PUBLIC KEY-----");
+		content.append("\n-----END PRIVACY-ENHANCED MESSAGE-----");
 
 		keyPem = new String(content);
 	}
@@ -138,24 +135,19 @@ public class SSHFormat {
 		/**
 		 * Perform format here
 		 */
-		String headerTag = new String("Comment".getBytes("US-ASCII"));
-		String headerValue = new String(
-				"This is our group's public key for RSA Assignment.\n"
-						.getBytes("UTF-8"));
-		content.append(headerTag + ": " + headerValue);
 
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-		/* Write format identifier*/
+		/* Write format identifier */
 		byte[] sshrsa = new byte[] { 0, 0, 0, 7, 's', 's', 'h', '-', 'r', 's',
 				'a' };
 		out.write(sshrsa);
-		
+
 		/* Encode the e */
 		byte[] data = e.toByteArray();
 		encodeUInt32(data.length, out);
 		out.write(data);
-		
+
 		/* Encode the n */
 		data = (p.multiply(q)).toByteArray();
 		encodeUInt32(data.length, out);
@@ -169,13 +161,35 @@ public class SSHFormat {
 			System.out.println("DEBUG");
 			System.out.println(out);
 			System.out.println(body);
+			System.out.println(splitStringFixedSize(body, 68));
 		}
 
-		content.append(body);
+		content.append(splitStringFixedSize(body, 68));
 
 		content.append("\n---- END SSH2 PUBLIC KEY ----");
 
 		keyPub = new String(content);
+	}
+
+	public static StringBuilder splitStringFixedSize(String str, int fixed_size)
+	{
+		int pos = 0;
+		String tmp = "";
+		StringBuilder result = new StringBuilder();
+		List<String> returnValue = new ArrayList<String>((str.length()
+				+ fixed_size - 1)/ fixed_size);
+
+		for (pos = 0; pos < str.length(); pos += fixed_size)
+		{
+			tmp = str.substring(pos, Math.min(str.length(), pos + fixed_size));
+			returnValue.add(tmp);
+		}
+		
+		for (String string : returnValue) {
+			result.append(string+ '\n');
+		}
+
+		return result;
 	}
 
 	public void encodeUInt32(int value, OutputStream out) throws IOException {
