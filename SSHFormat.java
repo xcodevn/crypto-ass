@@ -153,74 +153,90 @@ public class SSHFormat {
 
         /* Encode n */
         byte[] bn = n.toByteArray();
+/*
         if (bn[0] == 0) {
             byte[] tmp = new byte[bn.length - 1];
             System.arraycopy(bn, 1, tmp, 0, tmp.length);
             bn = tmp;
         }
+*/
         byte[] pn = concat(encodeLen(bn.length), bn);
 
         /* Encode e */
         byte[] be = e.toByteArray();
+/*
         if (be[0] == 0) {
             byte[] tmp = new byte[be.length - 1];
             System.arraycopy(be, 1, tmp, 0, tmp.length);
             be = tmp;
         }
+*/
         byte[] pe = concat(encodeLen(be.length), be);
 
         /* Encode d */
         byte[] bd = d.toByteArray();
+/*
         if (bd[0] == 0) {
             byte[] tmp = new byte[bd.length - 1];
             System.arraycopy(bd, 1, tmp, 0, tmp.length);
             bd = tmp;
         }
+*/
         byte[] pd = concat(encodeLen(bd.length), bd);
 
         /* Encode p */
         byte[] bp = p.toByteArray();
+/*
         if (bp[0] == 0) {
             byte[] tmp = new byte[bp.length - 1];
             System.arraycopy(bp, 1, tmp, 0, tmp.length);
             bp = tmp;
         }
+*/
         byte[] pp = concat(encodeLen(bp.length), bp);
 
         /* Encode q */
         byte[] bq = q.toByteArray();
+/*
         if (bq[0] == 0) {
             byte[] tmp = new byte[bq.length - 1];
             System.arraycopy(bq, 1, tmp, 0, tmp.length);
             bq = tmp;
         }
+*/
         byte[] pq = concat(encodeLen(bq.length), bq);
 
         /* Encode ex1 */
         byte[] bex1 = ex1.toByteArray();
+/*
         if (bex1[0] == 0) {
             byte[] tmp = new byte[bex1.length - 1];
             System.arraycopy(bex1, 1, tmp, 0, tmp.length);
             bex1 = tmp;
         }
+*/
         byte[] pex1 = concat(encodeLen(bex1.length), bex1);
 
         /* Encode ex2 */
         byte[] bex2 = ex2.toByteArray();
+/*
         if (bex2[0] == 0) {
             byte[] tmp = new byte[bex2.length - 1];
             System.arraycopy(bex2, 1, tmp, 0, tmp.length);
             bex2 = tmp;
         }
+*/
         byte[] pex2 = concat(encodeLen(bex2.length), bex2);
 
         /* Encode co */
         byte[] bco = co.toByteArray();
+/*
         if (bco[0] == 0) {
             byte[] tmp = new byte[bco.length - 1];
             System.arraycopy(bco, 1, tmp, 0, tmp.length);
             bco = tmp;
         }
+*/
         byte[] pco = concat(encodeLen(bco.length), bco);
 
         int len = ver.length + pn.length + pe.length + pd.length + pp.length + pq.length +
@@ -329,6 +345,7 @@ public class SSHFormat {
     } 
 
     public byte[] encodeLen(int len) {
+		System.out.println("len " + len);
         if (len <= 127) {
             byte[] rl = new byte[]{0x02, 0x00};
             rl[1] = (byte) len;
@@ -336,11 +353,12 @@ public class SSHFormat {
         } else {
             BigInteger b = BigInteger.valueOf(len);
             byte[] by = b.toByteArray();
-            if (by[0] == 0) {
+            /*if (by[0] == 0) {
                 byte[] tmp = new byte[by.length-1];
                 System.arraycopy(by, 1, tmp, 0, tmp.length);
                 by = tmp;
             }
+            */
             byte[] fi = new byte[1];
             fi[0] = (byte) (0x80 | by.length);
             byte[] trick = new byte[] {0x02};
