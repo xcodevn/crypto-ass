@@ -8,6 +8,7 @@ import java.io.PrintStream;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 import javax.xml.bind.DatatypeConverter;
 
@@ -17,18 +18,14 @@ public class SSHFormat {
 
 	private BigInteger readInputFile(String fileName) throws IOException {
 		FileInputStream in = null;
-		StringBuffer strContent = new StringBuffer("");
 
 		try {
 			in = new FileInputStream(fileName);
-			int len;
-			while ((len = in.read()) != -1) {
-				strContent.append(len);
-			}
 
-			String string = new String(strContent);
+			String string = (new Scanner(in)).next();
 
 			BigInteger bigInteger = new BigInteger(string);
+            //System.out.println("Big Num: " + bigInteger.toString());
 			return bigInteger;
 
 		} finally {

@@ -8,8 +8,6 @@ import java.io.IOException;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
 
-
-
 public class RSA {
 	
 	static boolean DEBUG = false;
@@ -55,7 +53,7 @@ public class RSA {
 	
 	BigInteger finde(BigInteger p, BigInteger q) {
 		BigInteger phi = p.subtract(BigInteger.ONE).multiply(q.subtract(BigInteger.ONE));
-		BigInteger e = createBigNumber(phi.bitLength()).mod(phi);
+		BigInteger e = createBigNumber(17).mod(phi);
 		while (gcd(e, phi).compareTo(BigInteger.ONE) != 0) {
 			e = e.add(BigInteger.ONE).mod(phi);
 		}
@@ -342,19 +340,19 @@ public class RSA {
 		PrintStream out = null;
         try {
 			out = new PrintStream(new FileOutputStream("e.numb"));
-			out.print(e.toString());
+			out.println(e.toString());
 			out.close();
 			
 			out = new PrintStream(new FileOutputStream("d.numb"));
-			out.print(d.toString());
+			out.println(d.toString());
 			out.close();
 			
 			out = new PrintStream(new FileOutputStream("p.numb"));
-			out.print(p.toString());
+			out.println(p.toString());
 			out.close();
 			
 			out = new PrintStream(new FileOutputStream("q.numb"));
-			out.print(q.toString());
+			out.println(q.toString());
 			out.close();
         } catch (FileNotFoundException ex) {
 			ex.printStackTrace();
